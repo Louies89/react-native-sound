@@ -17,6 +17,8 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.ExceptionsManagerModule;
+import android.app.NotificationManager; //Added by Chandrajyoti
+import android.os.Build; //Added by Chandrajyoti
 
 import java.io.File;
 import java.util.HashMap;
@@ -402,6 +404,136 @@ public class RNSoundModule extends ReactContextBaseJavaModule implements AudioMa
 
     int volume = Math.round(audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) * value);
     audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
+  }
+
+  @ReactMethod
+  public void getVolumeByStream(String type,final Callback callback) { //Added by Chandrajyoti
+    int streamType = AudioManager.STREAM_NOTIFICATION;
+    switch (type) {
+      case "Playback":
+        streamType = AudioManager.STREAM_MUSIC;
+        break;
+      case "Ambient":
+        streamType = AudioManager.STREAM_NOTIFICATION;
+        break;
+      case "System":
+        streamType = AudioManager.STREAM_SYSTEM;
+        break;
+      case "Voice":
+        streamType = AudioManager.STREAM_VOICE_CALL;
+        break;
+      case "Ring":
+        streamType = AudioManager.STREAM_RING;
+        break;
+      default:
+        streamType = AudioManager.STREAM_NOTIFICATION;
+        break;
+    }
+    try {
+      AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+
+      callback.invoke((float) audioManager.getStreamVolume(streamType) / audioManager.getStreamMaxVolume(streamType));
+    } catch (Exception error) {
+      WritableMap e = Arguments.createMap();
+      e.putInt("code", -1);
+      e.putString("message", error.getMessage());
+      callback.invoke(e);
+    }
+  }
+
+  @ReactMethod
+  public void setVolumeByStream(String type,final Float value,final Callback callback) { //Added by Chandrajyoti
+    int streamType = AudioManager.STREAM_NOTIFICATION;
+    switch (type) {
+      case "Playback":
+        streamType = AudioManager.STREAM_MUSIC;
+        break;
+      case "Ambient":
+        streamType = AudioManager.STREAM_NOTIFICATION;
+        break;
+      case "System":
+        streamType = AudioManager.STREAM_SYSTEM;
+        break;
+      case "Voice":
+        streamType = AudioManager.STREAM_VOICE_CALL;
+        break;
+      case "Ring":
+        streamType = AudioManager.STREAM_RING;
+        break;
+      default:
+        streamType = AudioManager.STREAM_NOTIFICATION;
+        break;
+    }
+
+    AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+
+    int volume = Math.round(audioManager.getStreamMaxVolume(streamType) * value);
+    audioManager.setStreamVolume(streamType, volume, 0);
+    callback.invoke(true);
+  }
+
+  @ReactMethod
+  public void setRingerMode(String mode,final Callback callback) { //Added by Chandrajyoti
+    AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+    switch (mode) {
+      case "SILENT":
+        audioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+        callback.invoke(true);
+        break;
+      case "VIBRATE":
+        audioManager.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
+        callback.invoke(true);
+        break;
+      case "NORMAL":
+        audioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+        callback.invoke(true);
+        break;
+      default:
+        callback.invoke(false);
+        break;
+    }
+  }
+
+  @ReactMethod
+  public void getRingerMode(Callback callback) { //Added by Chandrajyoti
+    try {
+      AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+      int ringerMode = audioManager.getRingerMode();
+      if (ringerMode == AudioManager.RINGER_MODE_SILENT){
+        callback.invoke("SILENT");
+      }
+      else if (ringerMode == AudioManager.RINGER_MODE_VIBRATE){
+        callback.invoke("VIBRATE");
+      }
+      else if (ringerMode == AudioManager.RINGER_MODE_NORMAL){
+        callback.invoke("NORMAL");
+      }
+    } 
+    catch (Exception error) {
+      WritableMap e = Arguments.createMap();
+      e.putInt("code", -1);
+      e.putString("message", error.getMessage());
+      callback.invoke(e);
+    }
+  }
+
+  @ReactMethod
+  public void getNotificationAccessInfo(Callback callback) { //Added by Chandrajyoti
+    try {
+      NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+      if(Build.VERSION.SDK_INT>=23){
+        callback.invoke(notificationManager.isNotificationPolicyAccessGranted()); //If granted, then app can change the notification state if user has made it Do Not Disturb
+      }
+      else{
+        callback.invoke(true); //API 23 "Do Not Disturb" mode introduced, so for all api before 23, this has to be sent "true"
+      }
+    } 
+    catch (Exception error) {
+      WritableMap e = Arguments.createMap();
+      e.putInt("code", -1);
+      e.putString("message", error.getMessage());
+      callback.invoke(e);
+    }
   }
 
   @ReactMethod
