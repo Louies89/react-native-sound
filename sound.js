@@ -177,6 +177,44 @@ Sound.prototype.setSystemVolume = function(value) {
   return this;
 };
 
+Sound.prototype.getVolumeByStream = function(type,callback) { //Added by Chandrajyoti
+  if(IsAndroid) {
+    RNSound.getVolumeByStream(type,callback);
+  }
+  return this;
+};
+
+Sound.prototype.setVolumeByStream = function(type,value,callback) { //Added by Chandrajyoti
+  if (IsAndroid) {
+    RNSound.setVolumeByStream(type,value, (result) => callback && callback(result));
+  }
+  return this;
+};
+
+
+Sound.prototype.getRingerMode = function(callback) { //Added by Chandrajyoti
+  if(IsAndroid) {
+    RNSound.getRingerMode(callback);
+  }
+  return this;
+};
+
+Sound.prototype.setRingerMode = function(mode,callback) { //Added by Chandrajyoti
+  if (IsAndroid) {
+    RNSound.setRingerMode(mode,(result) => callback && callback(result));
+  }
+  return this;
+};
+
+
+Sound.prototype.getNotificationAccessInfo = function(callback) { //Added by Chandrajyoti
+  if (IsAndroid) {
+    RNSound.getNotificationAccessInfo(callback);
+  }
+  return this;
+};
+
+
 Sound.prototype.getPan = function() {
   return this._pan;
 };
